@@ -60,6 +60,7 @@ public class ExplorationMapFunctionLogic {
 			Services.EXPLORATION_MAP_FUNCTION_LOGIC.invalidateMap(mapStack, level, invPos, asyncId);
 		} else {
 			ALConstants.logInfo("Location found - updating treasure map in chest");
+			// complete the operation in MapManager to close the loop
 			MapManager.getInstance().completeLocateOperation(asyncId, pos);
 			Services.EXPLORATION_MAP_FUNCTION_LOGIC.updateMap(
 					mapStack,
@@ -89,9 +90,10 @@ public class ExplorationMapFunctionLogic {
 		// If the map is from a chest, we need to handle it differently
 		boolean isFromChest = (level.getBlockEntity(blockPos) instanceof ChestBlockEntity);
 
+		// Even if the map was generated as part of a chest's loot, we still need to add the locate operation
+		// in case the chest is broken and the map is picked up later.
 		MapManager.getInstance().addLocateOperation(asyncId, new MapManager.LocateOperation(
-					mapStack,
-					level.dimension(),
+				level.dimension(),
 					scale,
 					destinationType
 		));

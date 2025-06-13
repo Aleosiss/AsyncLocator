@@ -65,7 +65,6 @@ public class AsyncLocatorConfigFabric {
 	private AsyncLocatorConfigFabric() {}
 
 	public static void init() {
-		Logger.getLogger("io.netty").setLevel(Level.OFF);
 		Path configFile = FabricLoader.getInstance().getConfigDir().resolve(ALConstants.MOD_ID + ".properties");
 
 		if (Files.exists(configFile)) {

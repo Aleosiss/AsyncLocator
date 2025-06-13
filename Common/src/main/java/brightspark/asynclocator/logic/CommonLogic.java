@@ -25,7 +25,7 @@ import java.util.UUID;
 
 public class CommonLogic {
 	public static final String MAP_HOVER_NAME_KEY = "menu.working";
-	public static final String KEY_LOCATING = "asynclocator.v2.locating.";
+	public static final String KEY_LOCATING = "asynclocator.locating.";
 
 	private CommonLogic() {}
 

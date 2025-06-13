@@ -11,6 +11,17 @@ import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * Static manager to facilitate map-pull operations, or "locate operations".
+ *
+ * When a locate task is created, it generates a UUID and stores it in the map and manager.
+ *
+ * In {@link brightspark.asynclocator.mixins.MapItemMixin}, the UUID is used to retrieve the locate operation. It then stores
+ * its own name in the LocateOperation, then sets it's name to the in-progress component.
+ *
+ * When the locate task completes, it adds the block position to the LocateOperation,
+ * and marks it as completed.
+ */
 public class MapManager {
     private static final HashMap<UUID, LocateOperation> LOCATE_OPERATIONS = new HashMap<>();
     private static final MapManager INSTANCE = new MapManager();
@@ -23,18 +34,17 @@ public class MapManager {
      * Represents a locate operation in the map manager.
      */
     public static class LocateOperation {
-        public ItemStack mapItemStack;
         public ResourceKey<Level> levelKey;
-        public BlockPos pos;
-        public int scale;
         public Holder<MapDecorationType> destinationType;
+        public int scale;
+
         public boolean initialized = false;
         public String displayName = null;
-        public boolean completed = false;
-        public boolean invalidated = false;
 
-        public LocateOperation(ItemStack mapItemStack, ResourceKey<Level> levelKey, int scale, Holder<MapDecorationType> destinationType) {
-            this.mapItemStack = mapItemStack;
+        public boolean completed = false;
+        public BlockPos pos;
+
+        public LocateOperation(ResourceKey<Level> levelKey, int scale, Holder<MapDecorationType> destinationType) {
             this.levelKey = levelKey;
             this.scale = scale;
             this.destinationType = destinationType;
@@ -84,17 +94,6 @@ public void removeLocateOperation(UUID uuid) {
 
         LOCATE_OPERATIONS.put(asyncId, operation);
         ALConstants.logInfo("Locate operation completed for UUID: {}, position: {}", asyncId, pos);
-    }
-
-    public void invalidateLocateOperation(UUID asyncId) {
-        LocateOperation operation = LOCATE_OPERATIONS.get(asyncId);
-        if (operation == null) {
-            throw new IllegalStateException("No locate operation found for UUID: " + asyncId);
-        }
-
-        operation.invalidated = true;
-        LOCATE_OPERATIONS.put(asyncId, operation);
-        ALConstants.logInfo("Locate operation invalidated for UUID: {}", asyncId);
     }
 
     private static String getName(ItemStack is) {
