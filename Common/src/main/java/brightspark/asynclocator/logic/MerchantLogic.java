@@ -174,9 +174,6 @@ public class MerchantLogic {
 			ItemStack mapStack = CommonLogic.createEmptyMap();
 			task.apply((ServerLevel) trader.level(), merchant, mapStack);
 
-
-			var emeraldItemCost = new ItemCost(Items.EMERALD, emeraldCost);
-
 			return new MerchantOffer(
 				new ItemCost(Items.EMERALD, emeraldCost),
 				Optional.of(new ItemCost(Items.COMPASS)),
