@@ -94,7 +94,7 @@ public class DolphinSwimToTreasureGoalMixin {
 	}
 
 	private void handleFindTreasureAsync(ServerLevel level, BlockPos blockPos) {
-		locateTask = AsyncLocator.locate(level, StructureTags.DOLPHIN_LOCATED, blockPos, 50, false)
+		locateTask = AsyncLocator.locateStructure(level, StructureTags.DOLPHIN_LOCATED, blockPos, 50, false)
 			.thenOnServerThread(pos -> handleLocationFound(level, pos));
 	}
 

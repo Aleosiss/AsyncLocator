@@ -16,7 +16,7 @@ public class EnderEyeItemLogic {
 	private EnderEyeItemLogic() {}
 
 	public static void locateAsync(ServerLevel level, Player player, EyeOfEnder eyeOfEnder, EnderEyeItem enderEyeItem) {
-		AsyncLocator.locate(
+		AsyncLocator.locateStructure(
 			level,
 			StructureTags.EYE_OF_ENDER_LOCATED,
 			player.blockPosition(),

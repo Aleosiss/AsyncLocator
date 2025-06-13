@@ -10,18 +10,16 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.config.ModConfigEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.network.NetworkConstants;
 
 @Mod(ALConstants.MOD_ID)
 public class AsyncLocatorModForge {
-	public AsyncLocatorModForge() {
-		ModLoadingContext ctx = ModLoadingContext.get();
+	public AsyncLocatorModForge(ModLoadingContext ctx, FMLJavaModLoadingContext jml) {
 
 		// Tells Forge that this mod is only required server side
 		ctx.registerExtensionPoint(
 			IExtensionPoint.DisplayTest.class,
 			() -> new IExtensionPoint.DisplayTest(
-				() -> NetworkConstants.IGNORESERVERONLY,
+				() -> IExtensionPoint.DisplayTest.IGNORESERVERONLY,
 				(serverVersion, networkBool) -> true
 			)
 		);
@@ -32,7 +30,7 @@ public class AsyncLocatorModForge {
 		forgeEventBus.addListener((ServerAboutToStartEvent event) -> AsyncLocator.setupExecutorService());
 		forgeEventBus.addListener((ServerStoppingEvent event) -> AsyncLocator.shutdownExecutorService());
 
-		FMLJavaModLoadingContext.get().getModEventBus()
+		jml.getModEventBus()
 			.addListener((ModConfigEvent.Loading event) -> AsyncLocatorModCommon.printConfigs());
 	}
 }

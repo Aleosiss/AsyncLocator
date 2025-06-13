@@ -4,11 +4,13 @@ import brightspark.asynclocator.ALConstants;
 import brightspark.asynclocator.logic.ExplorationMapFunctionLogic;
 import brightspark.asynclocator.platform.Services;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.ExplorationMapFunction;
 import net.minecraft.world.phys.Vec3;
@@ -28,7 +30,7 @@ public class ExplorationMapFunctionMixin {
 
 	@Shadow
 	@Final
-	MapDecoration.Type mapDecoration;
+	Holder<MapDecorationType> mapDecoration;
 
 	@Shadow
 	@Final

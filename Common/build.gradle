@@ -3,6 +3,7 @@ plugins {
     id 'java'
     id 'maven-publish'
     id 'org.spongepowered.gradle.vanilla'
+    id 'org.jetbrains.kotlin.jvm'
 }
 base {
     archivesName = "${mod_name}-common-${minecraft_version}"
@@ -17,6 +18,7 @@ minecraft {
 dependencies {
     compileOnly group: 'org.spongepowered', name: 'mixin', version: '0.8.5'
     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 }
 
 processResources {
@@ -40,5 +42,17 @@ publishing {
         maven {
             url "file://" + System.getenv("local_maven")
         }
+        maven {
+            url "https://libraries.minecraft.net"
+            content {
+                includeModule("org.lwjgl", "lwjgl-freetype")
+            }
+        }
     }
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(21)
 }

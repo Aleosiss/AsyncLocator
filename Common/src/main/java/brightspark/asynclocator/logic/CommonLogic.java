@@ -2,7 +2,10 @@ package brightspark.asynclocator.logic;
 
 import brightspark.asynclocator.mixins.MapItemAccess;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.ByteTag;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -10,14 +13,19 @@ import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.saveddata.maps.MapDecoration;
+import net.minecraft.world.level.saveddata.maps.MapDecorationType;
+import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 
+import java.util.UUID;
+
 public class CommonLogic {
-	private static final String MAP_HOVER_NAME_KEY = "menu.working";
-	private static final String KEY_LOCATING = "asynclocator.locating";
+	public static final String MAP_HOVER_NAME_KEY = "menu.working";
+	public static final String KEY_LOCATING = "asynclocator.v2.locating.";
 
 	private CommonLogic() {}
 
@@ -28,8 +36,12 @@ public class CommonLogic {
 	 */
 	public static ItemStack createEmptyMap() {
 		ItemStack stack = new ItemStack(Items.FILLED_MAP);
-		stack.setHoverName(Component.translatable(MAP_HOVER_NAME_KEY));
-		stack.addTagElement(KEY_LOCATING, ByteTag.ONE);
+		stack.set(DataComponents.ITEM_NAME, Component.translatable(MAP_HOVER_NAME_KEY));
+
+		CompoundTag customData = new CompoundTag();
+		customData.putUUID(KEY_LOCATING, UUID.randomUUID());
+		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(customData));
+
 		return stack;
 	}
 
@@ -42,7 +54,12 @@ public class CommonLogic {
 	 */
 	@SuppressWarnings("DataFlowIssue")
 	public static boolean isEmptyPendingMap(ItemStack stack) {
-		return stack.is(Items.FILLED_MAP) && stack.hasTag() && stack.getTag().contains(KEY_LOCATING);
+		if (!stack.is(Items.FILLED_MAP)) {
+			return false;
+		}
+
+		CustomData customData = stack.get(DataComponents.CUSTOM_DATA);
+		return customData != null && customData.contains(KEY_LOCATING);
 	}
 
 	/**
@@ -59,7 +76,7 @@ public class CommonLogic {
 		ServerLevel level,
 		BlockPos pos,
 		int scale,
-		MapDecoration.Type destinationType
+		Holder<MapDecorationType> destinationType
 	) {
 		updateMap(mapStack, level, pos, scale, destinationType, (Component) null);
 	}
@@ -79,7 +96,7 @@ public class CommonLogic {
 		ServerLevel level,
 		BlockPos pos,
 		int scale,
-		MapDecoration.Type destinationType,
+		Holder<MapDecorationType> destinationType,
 		String displayName
 	) {
 		updateMap(mapStack, level, pos, scale, destinationType, Component.translatable(displayName));
@@ -100,17 +117,27 @@ public class CommonLogic {
 		ServerLevel level,
 		BlockPos pos,
 		int scale,
-		MapDecoration.Type destinationType,
+		Holder<MapDecorationType> destinationType,
 		Component displayName
 	) {
-		MapItemAccess.callCreateAndStoreSavedData(
-			mapStack, level, pos.getX(), pos.getZ(), scale, true, true, level.dimension()
-		);
+		MapId mapId = MapItemAccess.callCreateNewSavedData(level, pos.getX(), pos.getZ(), scale, true, true, level.dimension());
+		mapStack.set(DataComponents.MAP_ID, mapId);
 		MapItem.renderBiomePreviewMap(level, mapStack);
 		MapItemSavedData.addTargetDecoration(mapStack, pos, "+", destinationType);
 		if (displayName != null)
-			mapStack.setHoverName(displayName);
-		mapStack.removeTagKey(KEY_LOCATING);
+			mapStack.set(DataComponents.ITEM_NAME, displayName);
+
+		CustomData currentData = mapStack.get(DataComponents.CUSTOM_DATA);
+		if (currentData != null) {
+			CompoundTag newTag = currentData.copyTag();
+			newTag.remove(KEY_LOCATING);
+
+			if (newTag.isEmpty()) {
+				mapStack.remove(DataComponents.CUSTOM_DATA);
+			} else {
+				mapStack.set(DataComponents.CUSTOM_DATA, CustomData.of(newTag));
+			}
+		}
 	}
 
 	/**

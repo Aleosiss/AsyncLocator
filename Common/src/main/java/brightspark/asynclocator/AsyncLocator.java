@@ -2,22 +2,34 @@ package brightspark.asynclocator;
 
 import brightspark.asynclocator.platform.Services;
 import com.mojang.datafixers.util.Pair;
+import net.minecraft.commands.arguments.ResourceOrTagArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.logging.Logger;
 
 public class AsyncLocator {
+
+
 	private static ExecutorService LOCATING_EXECUTOR_SERVICE = null;
 
 	private AsyncLocator() {}
@@ -53,7 +65,7 @@ public class AsyncLocator {
 	 * Queues a task to locate a feature using {@link ServerLevel#findNearestMapStructure(TagKey, BlockPos, int, boolean)}
 	 * and returns a {@link LocateTask} with the futures for it.
 	 */
-	public static LocateTask<BlockPos> locate(
+	public static LocateTask<BlockPos> locateStructure(
 		ServerLevel level,
 		TagKey<Structure> structureTag,
 		BlockPos pos,
@@ -66,7 +78,13 @@ public class AsyncLocator {
 		);
 		CompletableFuture<BlockPos> completableFuture = new CompletableFuture<>();
 		Future<?> future = LOCATING_EXECUTOR_SERVICE.submit(
-			() -> doLocateLevel(completableFuture, level, structureTag, pos, searchRadius, skipKnownStructures)
+			() -> {
+                try {
+                    doLocateStructureLevel(completableFuture, level, structureTag, pos, searchRadius, skipKnownStructures);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 		);
 		return new LocateTask<>(level.getServer(), completableFuture, future);
 	}
@@ -76,7 +94,7 @@ public class AsyncLocator {
 	 * {@link ChunkGenerator#findNearestMapStructure(ServerLevel, HolderSet, BlockPos, int, boolean)} and returns a
 	 * {@link LocateTask} with the futures for it.
 	 */
-	public static LocateTask<Pair<BlockPos, Holder<Structure>>> locate(
+	public static LocateTask<Pair<BlockPos, Holder<Structure>>> locateStructure(
 		ServerLevel level,
 		HolderSet<Structure> structureSet,
 		BlockPos pos,
@@ -89,19 +107,19 @@ public class AsyncLocator {
 		);
 		CompletableFuture<Pair<BlockPos, Holder<Structure>>> completableFuture = new CompletableFuture<>();
 		Future<?> future = LOCATING_EXECUTOR_SERVICE.submit(
-			() -> doLocateChunkGenerator(completableFuture, level, structureSet, pos, searchRadius, skipKnownStructures)
+			() -> doLocateStructureChunkGenerator(completableFuture, level, structureSet, pos, searchRadius, skipKnownStructures)
 		);
 		return new LocateTask<>(level.getServer(), completableFuture, future);
 	}
 
-	private static void doLocateLevel(
+	private static void doLocateStructureLevel(
 		CompletableFuture<BlockPos> completableFuture,
 		ServerLevel level,
 		TagKey<Structure> structureTag,
 		BlockPos pos,
 		int searchRadius,
 		boolean skipExistingChunks
-	) {
+	) throws InterruptedException {
 		ALConstants.logInfo(
 			"Trying to locate {} in {} around {} within {} chunks",
 			structureTag, level, pos, searchRadius
@@ -116,7 +134,7 @@ public class AsyncLocator {
 		completableFuture.complete(foundPos);
 	}
 
-	private static void doLocateChunkGenerator(
+	private static void doLocateStructureChunkGenerator(
 		CompletableFuture<Pair<BlockPos, Holder<Structure>>> completableFuture,
 		ServerLevel level,
 		HolderSet<Structure> structureSet,
@@ -139,6 +157,63 @@ public class AsyncLocator {
 				foundPair.getSecond().value().getClass().getSimpleName(), foundPair.getFirst(), time
 			);
 		completableFuture.complete(foundPair);
+	}
+
+	/**
+	 * Queues a task to locate a feature using {@link ServerLevel#findClosestBiome3d(Predicate, BlockPos, int, int, int)}
+	 * and returns a {@link LocateTask} with the futures for it.
+	 */
+	public static LocateTask<Pair<BlockPos, Holder<Biome>>> locateBiome(
+			ServerLevel level,
+			ResourceOrTagArgument.Result biomeSet,
+			BlockPos pos,
+			int searchRadius,
+			boolean skipKnownBiomes
+	) {
+		ALConstants.logDebug(
+				"Creating locate task for {} in {} around {} within {} chunks",
+				biomeSet, level, pos, searchRadius
+		);
+		CompletableFuture<Pair<BlockPos, Holder<Biome>>> completableFuture = new CompletableFuture<>();
+		Future<?> future = LOCATING_EXECUTOR_SERVICE.submit(
+				() -> doLocateBiome(completableFuture, level, biomeSet, pos, searchRadius, skipKnownBiomes)
+		);
+		return new LocateTask<>(level.getServer(), completableFuture, future);
+	}
+
+	private static void doLocateBiome(
+			CompletableFuture<Pair<BlockPos, Holder<Biome>>> completableFuture,
+			ServerLevel level,
+			ResourceOrTagArgument.Result<Biome> biomeSet,
+			BlockPos pos,
+			int searchRadius,
+			boolean skipExistingChunks
+	) {
+		ALConstants.logInfo(
+				"Trying to locate {} in {} around {} within {} chunks",
+				biomeSet, level, pos, searchRadius
+		);
+		long start = System.nanoTime();
+
+		var radius = searchRadius * 16;
+		var horizontalStep = 32;
+		var verticalStep = 64;
+
+		Pair<BlockPos, Holder<Biome>> locate = level.findClosestBiome3d(
+                biomeSet,
+				pos,
+				radius,
+				horizontalStep,
+				verticalStep
+		);
+
+		var foundPos = locate == null ? null : locate.getFirst();
+		String time = NumberFormat.getNumberInstance().format(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+		if (foundPos == null)
+			ALConstants.logInfo("No {} found (took {}ms)", biomeSet, time);
+		else
+			ALConstants.logInfo("Found {} at {} (took {}ms)", biomeSet, foundPos, time);
+		completableFuture.complete(locate);
 	}
 
 	/**

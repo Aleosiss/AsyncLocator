@@ -3,6 +3,7 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'fabric-loom'
+    id 'org.jetbrains.kotlin.jvm'
 }
 base {
     archivesName = "${mod_name}-fabric-${minecraft_version}"
@@ -14,6 +15,8 @@ dependencies {
     modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_version}"
     implementation group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.1'
     implementation project(":Common")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    modImplementation("net.fabricmc:fabric-language-kotlin:${fabric_kotlin_version}")
 }
 
 loom {
@@ -29,14 +32,16 @@ loom {
             setConfigName("Fabric Client")
             ideConfigGenerated(true)
             runDir("run")
-            vmArg("-Dfabric.log.level=debug")
+            vmArg("-Dfabric.log.level=info")
+            vmArg("-Dnet.minecraft.network.protocol=info")
         }
         server {
             server()
             setConfigName("Fabric Server")
             ideConfigGenerated(true)
             runDir("run")
-            vmArg("-Dfabric.log.level=debug")
+            vmArg("-Dfabric.log.level=info")
+            vmArg("-Dnet.minecraft.network.protocol=info")
         }
     }
 }
@@ -61,4 +66,10 @@ publishing {
             url "file://" + System.getenv("local_maven")
         }
     }
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(21)
 }

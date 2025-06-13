@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
     id 'net.minecraftforge.gradle'
     id 'org.spongepowered.mixin'
+    id 'org.jetbrains.kotlin.jvm'
 }
 base {
     archivesName = "${mod_name}-forge-${minecraft_version}"
@@ -59,6 +60,8 @@ dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     compileOnly project(":Common")
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "thedarkcolour:kotlinforforge:${forge_kotlin_version}"
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -85,4 +88,17 @@ publishing {
             url "file://" + System.getenv("local_maven")
         }
     }
+
+
+}
+repositories {
+    mavenCentral()
+
+    maven {
+        name = 'kotlinforforge'
+        url = 'https://thedarkcolour.github.io/KotlinForForge/'
+    }
+}
+kotlin {
+    jvmToolchain(21)
 }

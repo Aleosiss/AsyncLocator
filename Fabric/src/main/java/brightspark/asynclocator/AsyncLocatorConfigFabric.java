@@ -7,6 +7,8 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AsyncLocatorConfigFabric {
 	@Config(
@@ -63,6 +65,7 @@ public class AsyncLocatorConfigFabric {
 	private AsyncLocatorConfigFabric() {}
 
 	public static void init() {
+		Logger.getLogger("io.netty").setLevel(Level.OFF);
 		Path configFile = FabricLoader.getInstance().getConfigDir().resolve(ALConstants.MOD_ID + ".properties");
 
 		if (Files.exists(configFile)) {
