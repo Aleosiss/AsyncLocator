@@ -38,4 +38,20 @@ public class FabricConfigHelper implements ConfigHelper {
 	public boolean villagerTradeEnabled() {
 		return AsyncLocatorConfigFabric.FeatureToggles.VILLAGER_TRADE_ENABLED;
 	}
+
+	@Override
+	public int mapNameCacheExpiryMinutes() {
+		return AsyncLocatorConfigFabric.MAP_NAME_CACHE_EXPIRY_MINUTES;
+	}
+
+	@Override
+	public int biomeSearchRadius() {
+		return AsyncLocatorConfigFabric.BIOME_SEARCH_RADIUS;
+	}
+
+	@Override
+	public int structureSearchRadius() {
+		return AsyncLocatorConfigFabric.STRUCTURE_SEARCH_RADIUS;
+	}
+
 }

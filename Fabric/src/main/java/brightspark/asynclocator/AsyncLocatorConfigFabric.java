@@ -2,6 +2,7 @@ package brightspark.asynclocator;
 
 import brightspark.asynclocator.SparkConfig.Category;
 import brightspark.asynclocator.SparkConfig.Config;
+import io.netty.handler.ssl.IdentityCipherSuiteFilter;
 import net.fabricmc.loader.api.FabricLoader;
 
 import java.io.IOException;
@@ -32,6 +33,38 @@ public class AsyncLocatorConfigFabric {
 			"""
 	)
 	public static boolean REMOVE_OFFER = false;
+	@Config(
+		value = "mapNameCacheExpiryMinutes",
+		comment = """
+			The number of minutes before the map name cache expires.
+			This is used to look up the name of a map once it's been located. 
+			Increase this value if your locates are taking longer than this value.
+			""",
+		min = 1,
+		max = Integer.MAX_VALUE
+	)
+	public static int MAP_NAME_CACHE_EXPIRY_MINUTES = 5;
+	@Config(
+		value = "biomeSearchRadius",
+		comment = """
+			The radius in chunks in which to search for biomes when locating them.
+			This is used for locating biomes with the locate command.
+			""",
+		min = 1,
+		max = Integer.MAX_VALUE
+	)
+	public static int BIOME_SEARCH_RADIUS = 400;
+	@Config(
+		value = "structureSearchRadius",
+		comment = """
+			The radius in chunks in which to search for structures when locating them. This is used
+			for locating structures with the locate command, as well as for other features such as
+			dolphin treasures, Eyes of Ender, exploration maps, and villager trades.
+			""",
+		min = 1,
+		max = Integer.MAX_VALUE
+	)
+	public static int STRUCTURE_SEARCH_RADIUS = 400;
 
 	@Category("Feature Toggles")
 	public static class FeatureToggles {

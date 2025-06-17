@@ -3,6 +3,7 @@ package brightspark.asynclocator.logic;
 import brightspark.asynclocator.ALConstants;
 import brightspark.asynclocator.AsyncLocator;
 import brightspark.asynclocator.mixins.LocateCommandAccess;
+import brightspark.asynclocator.platform.Services;
 import com.google.common.base.Stopwatch;
 import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
@@ -15,6 +16,8 @@ import net.minecraft.server.commands.LocateCommand;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
+import static brightspark.asynclocator.platform.Services.CONFIG;
+
 public class LocateCommandLogic {
 	private LocateCommandLogic() {}
 
@@ -25,7 +28,7 @@ public class LocateCommandLogic {
 	) {
 		BlockPos originPos = BlockPos.containing(sourceStack.getPosition());
 		Stopwatch stopwatch = Stopwatch.createStarted(Util.TICKER);
-		AsyncLocator.locateStructure(sourceStack.getLevel(), holderset, originPos, 100, false)
+		AsyncLocator.locateStructure(sourceStack.getLevel(), holderset, originPos, CONFIG.structureSearchRadius(), false)
 			.thenOnServerThread(pair -> {
 				stopwatch.stop();
 				if (pair != null) {
@@ -55,7 +58,7 @@ public class LocateCommandLogic {
 		BlockPos originPos = BlockPos.containing(sourceStack.getPosition());
 		Stopwatch stopwatch = Stopwatch.createStarted(Util.TICKER);
 
-		AsyncLocator.locateBiome(sourceStack.getLevel(), biomeResult, originPos, 400, false)
+		AsyncLocator.locateBiome(sourceStack.getLevel(), biomeResult, originPos, CONFIG.biomeSearchRadius(), false)
 				.thenOnServerThread(pair -> {
 					stopwatch.stop();
 					if (pair != null) {

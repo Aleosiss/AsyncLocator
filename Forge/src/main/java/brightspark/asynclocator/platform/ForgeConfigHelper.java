@@ -38,4 +38,19 @@ public class ForgeConfigHelper implements ConfigHelper {
 	public boolean villagerTradeEnabled() {
 		return AsyncLocatorConfigForge.VILLAGER_TRADE_ENABLED.get();
 	}
+
+	@Override
+	public int mapNameCacheExpiryMinutes() {
+		return AsyncLocatorConfigForge.MAP_NAME_CACHE_EXPIRY_MINUTES.get();
+	}
+
+	@Override
+	public int biomeSearchRadius() {
+		return AsyncLocatorConfigForge.BIOME_SEARCH_RADIUS.get();
+	}
+
+	@Override
+	public int structureSearchRadius() {
+		return AsyncLocatorConfigForge.STRUCTURE_SEARCH_RADIUS.get();
+	}
 }

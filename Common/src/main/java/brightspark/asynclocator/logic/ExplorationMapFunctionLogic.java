@@ -25,7 +25,7 @@ import static brightspark.asynclocator.logic.CommonLogic.KEY_LOCATING;
 public class ExplorationMapFunctionLogic {
 	// I'd like to think that structure locating shouldn't take *this* long
 	private static final Cache<ItemStack, Component> MAP_NAME_CACHE =
-			CacheBuilder.newBuilder().expireAfterWrite(Duration.ofMinutes(5)).build();
+			CacheBuilder.newBuilder().expireAfterWrite(Duration.ofMinutes(Services.CONFIG.mapNameCacheExpiryMinutes())).build();
 
 	public static void cacheName(ItemStack stack, Component name) {
 		MAP_NAME_CACHE.put(stack, name);

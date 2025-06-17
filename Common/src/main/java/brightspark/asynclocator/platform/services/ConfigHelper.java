@@ -36,4 +36,20 @@ public interface ConfigHelper {
 	 * If true, enables asynchronous locating of structures for villager trades.
 	 */
 	boolean villagerTradeEnabled();
+
+	/**
+	 * The number of minutes before the map name cache expires.
+	 * The cache is used to look up the name of a map once it's been located.
+	 */
+	int mapNameCacheExpiryMinutes();
+
+	/**
+	 * The radius in chunks in which to search for biomes when locating them.
+	 */
+	int biomeSearchRadius();
+
+	/**
+	 * The radius in chunks in which to search for structures when locating them.
+	 */
+	int structureSearchRadius();
 }

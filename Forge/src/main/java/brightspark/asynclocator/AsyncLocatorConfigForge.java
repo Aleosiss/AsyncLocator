@@ -9,6 +9,9 @@ public class AsyncLocatorConfigForge {
 
 	public static ConfigValue<Integer> LOCATOR_THREADS;
 	public static ConfigValue<Boolean> REMOVE_OFFER;
+	public static ConfigValue<Integer> MAP_NAME_CACHE_EXPIRY_MINUTES;
+	public static ConfigValue<Integer> BIOME_SEARCH_RADIUS;
+	public static ConfigValue<Integer> STRUCTURE_SEARCH_RADIUS;
 
 	// Feature toggles
 	public static ConfigValue<Boolean> DOLPHIN_TREASURE_ENABLED;
@@ -54,6 +57,26 @@ public class AsyncLocatorConfigForge {
 				VILLAGER_TRADE_ENABLED = builder
 					.comment("If true, enables asynchronous locating of structures for villager trades.")
 					.define("villagerTradeEnabled", true);
+				MAP_NAME_CACHE_EXPIRY_MINUTES = builder
+						.comment(
+							"The number of minutes before the map name cache expires.",
+							"This is used to look up the name of a map once it's been located.",
+							"Increase this value if your locates are taking longer than this value."
+						)
+						.define("mapNameCacheExpiryMinutes", 5);
+				BIOME_SEARCH_RADIUS = builder
+					.comment(
+						"The radius in chunks in which to search for biomes when locating them.",
+						"This is used for locating biomes with the locate command."
+					)
+					.defineInRange("biomeSearchRadius", 400, 1, Integer.MAX_VALUE);
+				STRUCTURE_SEARCH_RADIUS = builder
+					.comment(
+						"The radius in chunks in which to search for structures when locating them. This is used",
+						"for locating structures with the locate command, as well as for other features such as",
+						"dolphin treasures, Eyes of Ender, exploration maps, and villager trades."
+					)
+					.defineInRange("structureSearchRadius", 400, 1, Integer.MAX_VALUE);
 				builder.pop();
 				return null;
 			})
