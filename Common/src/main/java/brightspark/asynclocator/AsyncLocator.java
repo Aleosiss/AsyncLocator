@@ -257,14 +257,13 @@ public class AsyncLocator {
 		Duration duration = Duration.ofNanos(System.nanoTime() - start);
 		var durationMillis = duration.get(ChronoUnit.MILLIS);
 
-		if (result == null) {
-			ALConstants.logInfo("No {} found (took {}ms or {})", searchTarget, durationMillis, duration);
-		} else {
-			// For biome pairs or other pairs
-			BlockPos pos = positionExtractor.apply(result);
-			ALConstants.logInfo("Found {} at {} (took {}ms or {})", searchTarget, pos, durationMillis, duration);
-		}
+        if (result != null) {
+            BlockPos pos = positionExtractor.apply(result);
+            ALConstants.logInfo("Found {} at {} (took {}ms or {})", searchTarget, pos, durationMillis, duration);
+        } else {
+            ALConstants.logInfo("No {} found (took {}ms or {})", searchTarget, durationMillis, duration);
+        }
 
-		return result;
+        return result;
 	}
 }
