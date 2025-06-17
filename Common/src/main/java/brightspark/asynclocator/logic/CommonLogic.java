@@ -26,6 +26,7 @@ import java.util.UUID;
 public class CommonLogic {
 	public static final String MAP_HOVER_NAME_KEY = "menu.working";
 	public static final String KEY_LOCATING = "asynclocator.locating";
+	public static final String KEY_LOCATING_MANAGED = KEY_LOCATING + ".managed";
 
 	private CommonLogic() {}
 
@@ -39,7 +40,18 @@ public class CommonLogic {
 		stack.set(DataComponents.ITEM_NAME, Component.translatable(MAP_HOVER_NAME_KEY));
 
 		CompoundTag customData = new CompoundTag();
-		customData.putUUID(KEY_LOCATING, UUID.randomUUID());
+		customData.putByte(KEY_LOCATING, (byte) 1);
+		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(customData));
+
+		return stack;
+	}
+
+	public static ItemStack createEmptyManagedMap() {
+		ItemStack stack = new ItemStack(Items.FILLED_MAP);
+		stack.set(DataComponents.ITEM_NAME, Component.translatable(MAP_HOVER_NAME_KEY));
+
+		CompoundTag customData = new CompoundTag();
+		customData.putUUID(KEY_LOCATING_MANAGED, UUID.randomUUID());
 		stack.set(DataComponents.CUSTOM_DATA, CustomData.of(customData));
 
 		return stack;

@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.UUID;
 
 import static brightspark.asynclocator.logic.CommonLogic.KEY_LOCATING;
+import static brightspark.asynclocator.logic.CommonLogic.KEY_LOCATING_MANAGED;
 
 public class ExplorationMapFunctionLogic {
 	// I'd like to think that structure locating shouldn't take *this* long
@@ -84,8 +85,10 @@ public class ExplorationMapFunctionLogic {
 		Holder<MapDecorationType> destinationType,
 		TagKey<Structure> destination
 	) {
-		ItemStack mapStack = CommonLogic.createEmptyMap();
-		var asyncId = mapStack.get(DataComponents.CUSTOM_DATA).copyTag().getUUID(KEY_LOCATING);
+		ItemStack mapStack = CommonLogic.createEmptyManagedMap();
+		var asyncId = mapStack.get(DataComponents.CUSTOM_DATA)
+				.copyTag()
+				.getUUID(KEY_LOCATING_MANAGED);
 
 		// If the map is from a chest, we need to handle it differently
 		boolean isFromChest = (level.getBlockEntity(blockPos) instanceof ChestBlockEntity);
