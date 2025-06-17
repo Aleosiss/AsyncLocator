@@ -68,20 +68,6 @@ public class MerchantLogic {
 				});
 	}
 
-	/**
-	 * @deprecated Use {@link CommonLogic#updateMap(ItemStack, ServerLevel, BlockPos, int, Holder<MapDecorationType>, String)} instead
-	 */
-	@Deprecated(since = "1.1.0", forRemoval = true)
-	public static void updateMap(
-		ItemStack mapStack,
-		ServerLevel level,
-		BlockPos pos,
-		String displayName,
-		Holder<MapDecorationType> destinationType
-	) {
-		CommonLogic.updateMap(mapStack, level, pos, 2, destinationType, displayName);
-	}
-
 	public static void handleLocationFound(
 		ServerLevel level,
 		AbstractVillager merchant,
