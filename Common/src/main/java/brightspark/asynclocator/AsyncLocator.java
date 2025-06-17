@@ -24,7 +24,9 @@ import java.util.UUID;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 
 public class AsyncLocator {
@@ -124,13 +126,8 @@ public class AsyncLocator {
 			"Trying to locate {} in {} around {} within {} chunks",
 			structureTag, level, pos, searchRadius
 		);
-		long start = System.nanoTime();
-		BlockPos foundPos = level.findNearestMapStructure(structureTag, pos, searchRadius, skipExistingChunks);
-		String time = NumberFormat.getNumberInstance().format(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
-		if (foundPos == null)
-			ALConstants.logInfo("No {} found (took {}ms)", structureTag, time);
-		else
-			ALConstants.logInfo("Found {} at {} (took {}ms)", structureTag, foundPos, time);
+
+		BlockPos foundPos = executeSearchWithLogging(structureTag, () -> level.findNearestMapStructure(structureTag, pos, searchRadius, skipExistingChunks));
 		completableFuture.complete(foundPos);
 	}
 
@@ -146,17 +143,15 @@ public class AsyncLocator {
 			"Trying to locate {} in {} around {} within {} chunks",
 			structureSet, level, pos, searchRadius
 		);
-		long start = System.nanoTime();
-		Pair<BlockPos, Holder<Structure>> foundPair = level.getChunkSource().getGenerator()
-			.findNearestMapStructure(level, structureSet, pos, searchRadius, skipExistingChunks);
-		String time = NumberFormat.getNumberInstance().format(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
-		if (foundPair == null)
-			ALConstants.logInfo("No {} found (took {}ms)", structureSet, time);
-		else
-			ALConstants.logInfo("Found {} at {} (took {}ms)",
-				foundPair.getSecond().value().getClass().getSimpleName(), foundPair.getFirst(), time
-			);
-		completableFuture.complete(foundPair);
+
+		Pair<BlockPos, Holder<Structure>> foundPos = executeSearchWithLogging(
+			structureSet,
+			() -> level.getChunkSource().getGenerator()
+						.findNearestMapStructure(level, structureSet, pos, searchRadius, skipExistingChunks),
+			pair -> pair == null ? null : pair.getFirst()
+		);
+
+		completableFuture.complete(foundPos);
 	}
 
 	/**
@@ -193,26 +188,23 @@ public class AsyncLocator {
 				"Trying to locate {} in {} around {} within {} chunks",
 				biomeSet, level, pos, searchRadius
 		);
-		long start = System.nanoTime();
 
-		var radius = searchRadius * 16;
-		var horizontalStep = 32;
-		var verticalStep = 64;
+		var locate = executeSearchWithLogging(biomeSet,
+				() -> {
+					var radius = searchRadius * 16;
+					var horizontalStep = 32;
+					var verticalStep = 64;
 
-		Pair<BlockPos, Holder<Biome>> locate = level.findClosestBiome3d(
-                biomeSet,
-				pos,
-				radius,
-				horizontalStep,
-				verticalStep
+					return level.findClosestBiome3d(
+							biomeSet,
+							pos,
+							radius,
+							horizontalStep,
+							verticalStep
+					);
+				},
+				result -> result == null ? null : result.getFirst()
 		);
-
-		var foundPos = locate == null ? null : locate.getFirst();
-		String time = NumberFormat.getNumberInstance().format(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
-		if (foundPos == null)
-			ALConstants.logInfo("No {} found (took {}ms)", biomeSet, time);
-		else
-			ALConstants.logInfo("Found {} at {} (took {}ms)", biomeSet, foundPos, time);
 		completableFuture.complete(locate);
 	}
 
@@ -251,5 +243,26 @@ public class AsyncLocator {
 			taskFuture.cancel(true);
 			completableFuture.cancel(false);
 		}
+	}
+
+	private static BlockPos executeSearchWithLogging(Object searchTarget, Supplier<BlockPos> searchOperation) {
+		return executeSearchWithLogging(searchTarget, searchOperation, blockPos -> blockPos);
+	}
+
+	private static <T> T executeSearchWithLogging(Object searchTarget, Supplier<T> searchOperation, Function<T, BlockPos> positionExtractor) {
+		ALConstants.logInfo("Trying to locate {}", searchTarget);
+		long start = System.nanoTime();
+		T result = searchOperation.get();
+		String time = NumberFormat.getNumberInstance().format(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+
+		if (result == null) {
+			ALConstants.logInfo("No {} found (took {}ms)", searchTarget, time);
+		} else {
+			// For biome pairs or other pairs
+			BlockPos pos = positionExtractor.apply(result);
+			ALConstants.logInfo("Found {} at {} (took {}ms)", searchTarget, pos, time);
+		}
+
+		return result;
 	}
 }
