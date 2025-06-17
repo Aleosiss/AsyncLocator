@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.text.NumberFormat;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -253,14 +254,15 @@ public class AsyncLocator {
 		ALConstants.logInfo("Trying to locate {}", searchTarget);
 		long start = System.nanoTime();
 		T result = searchOperation.get();
-		String time = NumberFormat.getNumberInstance().format(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start));
+		Duration duration = Duration.ofNanos(System.nanoTime() - start);
+		var durationMillis = duration.get(ChronoUnit.MILLIS);
 
 		if (result == null) {
-			ALConstants.logInfo("No {} found (took {}ms)", searchTarget, time);
+			ALConstants.logInfo("No {} found (took {}ms or {})", searchTarget, durationMillis, duration);
 		} else {
 			// For biome pairs or other pairs
 			BlockPos pos = positionExtractor.apply(result);
-			ALConstants.logInfo("Found {} at {} (took {}ms)", searchTarget, pos, time);
+			ALConstants.logInfo("Found {} at {} (took {}ms or {})", searchTarget, pos, durationMillis, duration);
 		}
 
 		return result;
